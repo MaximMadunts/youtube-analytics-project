@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.9"
 build = "^1.0.3"
+google-api-python-client = "^2.115.0"
 
 
 [build-system]
