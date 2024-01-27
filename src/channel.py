@@ -1,7 +1,9 @@
 import os
 from googleapiclient.discovery import build
 
-os.environ["API_KEY"] = "AIzaSyBwgpmMH0dA4JQSAvcf0Li8pxKvlM4oA5g"
+# os.environ["API_KEY"] = "AIzaSyBwgpmMH0dA4JQSAvcf0Li8pxKvlM4oA5g"
+
+
 class Channel:
     def __init__(self, channel_id):
         self.api_key = os.environ.get("API_KEY")
@@ -19,10 +21,14 @@ class Channel:
         title = channel_info["snippet"]["title"]
         subscribers = channel_info["statistics"]["subscriberCount"]
         videos = channel_info["statistics"]["videoCount"]
+        viewCount = channel_info["statistics"]["viewCount"]
 
-        print(f"Channel: {title}")
-        print(f"Subscribers: {subscribers}")
-        print(f"Videos: {videos}")
+        print(f"Канал: {title}")
+        print(f"Подписчики: {subscribers}")
+        print(f"Видео: {videos}")
+        print(f"Просмотров: {viewCount}")
+
+
 
 if __name__ == "__main__":
     channel_id = "AIzaSyBwgpmMH0dA4JQSAvcf0Li8pxKvlM4oA5g"
