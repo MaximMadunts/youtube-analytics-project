@@ -1,5 +1,7 @@
+import json
 import os
 from googleapiclient.discovery import build
+
 
 # os.environ["API_KEY"] = "AIzaSyBwgpmMH0dA4JQSAvcf0Li8pxKvlM4oA5g"
 
@@ -14,20 +16,8 @@ class Channel:
         request = self.youtube.channels().list(
             part="snippet,statistics",
             id=self.channel_id
-        )
-        response = request.execute()
-        channel_info = response["items"][0]
-
-        title = channel_info["snippet"]["title"]
-        subscribers = channel_info["statistics"]["subscriberCount"]
-        videos = channel_info["statistics"]["videoCount"]
-        viewCount = channel_info["statistics"]["viewCount"]
-
-        print(f"Канал: {title}")
-        print(f"Подписчики: {subscribers}")
-        print(f"Видео: {videos}")
-        print(f"Просмотров: {viewCount}")
-
+        ).execute()
+        print(json.dumps(request, indent=2))
 
 
 if __name__ == "__main__":
