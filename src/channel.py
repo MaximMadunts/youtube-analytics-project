@@ -8,69 +8,99 @@ from googleapiclient.discovery import build
 
 
 class Channel:
-    api_key = "AIzaSyBwgpmMH0dA4JQSAvcf0Li8pxKvlM4oA5g"
+    api_key = str = os.getenv('API_KEY')
 
-    def __init__(self, channel_id, api_key=None):
-        self.view_count = None
-        self.video_count = None
-        self.subscribers_count = None
-        self.link = None
-        self.description = None
-        self.title = None
-        self.name = None
-        self.url = None
-        self.api_key = api_key or os.environ.get("API_KEY")
-        self.channel_id = channel_id
-        self.youtube = build("youtube", "v3", developerKey=self.api_key)
-        self.channel_data()
-        self.title = None
-
-    def channel_data(self):
-        response = self.youtube.channels().list(
-            part="snippet,statistics",
-            id=self.channel_id
-        ).execute()
-
-        channel_data = response["items"][0]
-        snippet = channel_data["snippet"]
-        statistics = channel_data["statistics"]
-
-        # self.title = channel_data["title"]
-        self.name = snippet["title"]
-        self.description = snippet["description"]
-        self.link = f"https://www.youtube.com/channel/{self.channel_id}"
-        self.subscribers_count = int(statistics.get("subscriberCount", 0))
-        self.video_count = int(statistics.get("videoCount", 0))
-        self.view_count = int(statistics.get("viewCount", 0))
+    def __init__(self, channel_id: str) -> None:
+        """
+        Экземпляр инициализируется id канала. Дальше все данные будут подтягиваться по API.
+        """
+        self.__channel_id = channel_id
+        self.channel = self.get_service().channels().list(id=self.__channel_id, part='snippet,statistics').execute()
+        self.title = self.channel["items"][0]["snippet"]["title"]
+        self.description = self.channel["items"][0]["snippet"]["description"]
+        self.url = f"https://www.youtube.com/channel/{self.__channel_id}"
+        self.subscriber_count = self.channel["items"][0]["statistics"]["subscriberCount"]
+        self.video_count = self.channel["items"][0]["statistics"]["videoCount"]
+        self.view_count = self.channel["items"][0]["statistics"]["viewCount"]
 
     @classmethod
     def get_service(cls):
-        api_service_name = "youtube"
-        api_version = "v3"
-        return build(api_service_name, api_version, developerKey=cls.api_key)
+        """
+        Возвращает объект для работы с YouTube API
+        """
+        return build('youtube', 'v3', developerKey=Channel.api_key)
 
-    def to_json(self, filename):
-        data = {
-            "id": self.channel_id,
-            "name": self.name,
-            "description": self.description,
-            "link": self.link,
-            "subscribers_count": self.subscribers_count,
-            "video_count": self.video_count,
-            "view_count": self.view_count
-        }
+    def to_json(self, file_name):
+        """
+        Сохраняет в Json файл значения атрибутов экземпляра - информацию о канале
+        """
+        data = {'channel_id': self.channel_id,
+                'title': self.title,
+                'description': self.description,
+                'url': self.url,
+                'subscriber_count': self.subscriber_count,
+                'video_count': self.video_count,
+                'view_count': self.view_count
+                }
+        with open(file_name, 'w', encoding='UTF-8') as file:
+            json.dump(data, file, ensure_ascii=False)
 
-        with open(filename, 'w') as file:
-            json.dump(data, file, indent=2)
+    @property
+    def channel_id(self):
+        return self.__channel_id
 
-    def print_info(self):
-        print(f"ID канала: {self.channel_id}")
-        print(f"Название канала: {self.name}")
-        print(f"Описание канала: {self.description}")
-        print(f"Ссылка на канал: {self.link}")
-        print(f"Количество подписчиков: {self.subscribers_count}")
-        print(f"Количество видео: {self.video_count}")
-        print(f"Общее количество просмотров: {self.view_count}")
+    @channel_id.setter
+    def channel_id(self, value):
+
+        self.__channel_id = value
+
+    def __str__(self):
+        """
+        __str__
+        """
+        return f"{self.title} ({self.url})"
+
+    def __add__(self, other):
+        """
+        +
+        """
+        return self.view_count
+
+    def __sub__(self, other):
+        """
+        -
+        """
+        return self.view_count
+
+    def __lt__(self, other):
+        """
+        <
+        """
+        return self.view_count
+
+    def __le__(self, other):
+        """
+        <=
+        """
+        return self.view_count
+
+    def __gt__(self, other):
+        """
+        >
+        """
+        return self.view_count
+
+    def __ge__(self, other):
+        """
+        >=
+        """
+        return self.view_count
+
+    def print_info(self) -> None:
+        """
+        Выводит в консоль информацию о канале.
+        """
+        print(json.dumps(self.channel, indent=2, ensure_ascii=False))
 
 # if __name__ == "__main__":
 #     api_key = "AIzaSyBwgpmMH0dA4JQSAvcf0Li8pxKvlM4oA5g"
