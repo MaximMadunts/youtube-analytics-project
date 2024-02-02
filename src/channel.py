@@ -49,11 +49,6 @@ class Channel:
     def channel_id(self):
         return self.__channel_id
 
-    @channel_id.setter
-    def channel_id(self, value):
-
-        self.__channel_id = value
-
     def __str__(self):
         """
         __str__
@@ -64,37 +59,37 @@ class Channel:
         """
         +
         """
-        return self.view_count
+        return int(self.subscriber_count) + int(other.subscriber_count)
 
     def __sub__(self, other):
         """
         -
         """
-        return self.view_count
-
-    def __lt__(self, other):
-        """
-        <
-        """
-        return self.view_count
-
-    def __le__(self, other):
-        """
-        <=
-        """
-        return self.view_count
+        return int(self.subscriber_count) - int(other.subscriber_count)
 
     def __gt__(self, other):
         """
         >
         """
-        return self.view_count
+        return int(self.subscriber_count) > int(other.subscriber_count)
 
     def __ge__(self, other):
         """
         >=
         """
-        return self.view_count
+        return int(self.subscriber_count) >= int(other.subscriber_count)
+
+    def __lt__(self, other):
+        """
+        <
+        """
+        return int(self.subscriber_count) < int(other.subscriber_count)
+
+    def __le__(self, other):
+        """
+        <=
+        """
+        return int(self.subscriber_count) <= int(other.subscriber_count)
 
     def print_info(self) -> None:
         """
