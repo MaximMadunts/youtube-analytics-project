@@ -97,6 +97,10 @@ class Channel:
         """
         print(json.dumps(self.channel, indent=2, ensure_ascii=False))
 
+    @channel_id.setter
+    def channel_id(self, value):
+        self._channel_id = value
+
 # if __name__ == "__main__":
 #     api_key = "AIzaSyBwgpmMH0dA4JQSAvcf0Li8pxKvlM4oA5g"
 #     channel = Channel(channel_id)
