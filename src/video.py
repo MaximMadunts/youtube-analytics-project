@@ -1,32 +1,35 @@
+import os
+from dotenv import load_dotenv
+from src.channel import Channel
 from googleapiclient.discovery import build
+
+load_dotenv()
 
 
 class Video:
-    def __init__(self, video_id):
+    def __init__(self, video_id: str) -> None:
         self.video_id = video_id
         self.video_data = self.get_video_data()
-
-        self.title = self.video_data["items"][0]["snippet"]["title"]
-        self.url = f"https://www.youtube.com/watch?v={self.video_id}"
-        self.view_count = int(self.video_data["items"][0]["statistics"]["viewCount"])
-        self.like_count = int(self.video_data["items"][0]["statistics"]["likeCount"])
+        self.video_title = self.video_data["items"][0]["snippet"]["title"]
+        self.video_description = self.video_data["items"][0]["snippet"]["description"]
+        self.video_url = f"https://www.youtube.com/watch?v={self.video_id}"
+        self.view_count = self.video_data["items"][0]["statistics"]["viewCount"]
+        self.like_count = self.video_data["items"][0]["statistics"]["likeCount"]
 
     def get_video_data(self):
-        youtube = build('youtube', 'v3')
+        api_key = os.getenv("API_KEY")
+        youtube = build("youtube", "v3", developerKey=api_key)
         request = youtube.videos().list(
             part="snippet,statistics",
             id=self.video_id
-        )
-        return request.execute()
+        ).execute()
+        return request
 
-    def __str__(self):
-        return self.title
+    def __str__(self) -> str:
+        return f"{self.video_title}"
 
 
 class PLVideo(Video):
-    def __init__(self, video_id, playlist_id):
+    def __init__(self, video_id: str, playlist_id: str) -> None:
         super().__init__(video_id)
         self.playlist_id = playlist_id
-
-    def __str__(self):
-        return f"{super().__str__()} - Playlist: {self.playlist_id}"
