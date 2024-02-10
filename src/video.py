@@ -1,9 +1,7 @@
 import os
 from dotenv import load_dotenv
 from src.channel import Channel
-from googleapiclient.discovery import build
-
-load_dotenv()
+import googleapiclient.discovery
 
 
 class Video:
@@ -18,7 +16,7 @@ class Video:
 
     def get_video_data(self):
         api_key = os.getenv("API_KEY")
-        youtube = build("youtube", "v3", developerKey=api_key)
+        youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=api_key)
         request = youtube.videos().list(
             part="snippet,statistics",
             id=self.video_id
