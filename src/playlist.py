@@ -1,61 +1,55 @@
 import os
-import datetime
+from datetime import timedelta
+import isodate
 from googleapiclient.discovery import build
-
-from src.video import Video
-
-
-def parse_duration(duration_str: str) -> datetime.timedelta:
-    time_elements = duration_str.split("T")[1].split(":")
-    hours = int(time_elements[0]) if len(time_elements) > 1 else 0
-    minutes = int(time_elements[-2])
-    seconds = int(time_elements[-1][:-1])
-    duration = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
-    return duration
-
-
-def get_video_duration(video: Video) -> datetime.timedelta:
-    duration_str = video.video_data["items"][0]["contentDetails"]["duration"]
-    duration = parse_duration(duration_str)
-    return duration
 
 
 class PlayList:
-    def __init__(self, playlist_id: str) -> None:
+    api_key: str = os.getenv('API_KEY')
+    youtube = build('youtube', 'v3',
+                    developerKey=api_key)
+
+    def __init__(self, playlist_id):
         self.playlist_id = playlist_id
-        self.playlist_data = self.get_playlist_data()
-        self.title = self.playlist_data["items"][0]["snippet"]["title"]
-        self.url = f"https://www.youtube.com/playlist?list={self.playlist_id}"
-        self.videos = self.get_videos()
+        self.playlist_videos = self.youtube.playlistItems().list(
+            playlistId=playlist_id,
+            part='contentDetails,snippet',
+            maxResults=50, ).execute()
+        self.channel_id = self.playlist_videos['items'][0]['snippet'][
+            'channelId']
+        self.playlists = self.youtube.playlists().list(
+            channelId=self.channel_id,
+            part='contentDetails,snippet',
+            maxResults=50, ).execute()
+        for playlist in self.playlists['items']:
+            if playlist['id'] == self.playlist_id:
+                self.title = playlist['snippet']['title']
+        self.url = (f"https://www.youtube.com/playlist?list="
+                    f"{self.playlist_id}")
+        self.video_ids: list[str] = [
+            video['contentDetails']['videoId'] for video in
+            self.playlist_videos['items']]
+        self.video_response = self.youtube.videos().list(
+            part='contentDetails,statistics',
+            id=','.join(self.video_ids)).execute()
 
-    def get_playlist_data(self):
-        api_key = os.getenv("API_KEY")
-        youtube = build("youtube", "v3", developerKey=api_key)
-        request = youtube.playlists().list(
-            part="snippet",
-            id=self.playlist_id
-        ).execute()
-        return request
-
-    def get_videos(self):
-        api_key = os.getenv("API_KEY")
-        youtube = build("youtube", "v3", developerKey=api_key)
-        videos_request = youtube.playlistItems().list(
-            part="contentDetails",
-            playlistId=self.playlist_id,
-            maxResults=50
-        ).execute()
-
-        video_ids = [item["contentDetails"]["videoId"] for item in videos_request["items"]]
-        videos = [Video(video_id) for video_id in video_ids]
-
-        return videos
+    def __str__(self):
+        return f'{self.title}'
 
     @property
-    def total_duration(self) -> datetime.timedelta:
-        total_duration = sum([get_video_duration(video) for video in self.videos], datetime.timedelta())
-        return total_duration
+    def total_duration(self) -> timedelta:
+        total: timedelta = timedelta(hours=0, minutes=0)
+        for video in self.video_response['items']:
+            iso_8601_duration = video['contentDetails']['duration']
+            duration = isodate.parse_duration(iso_8601_duration)
+            total += duration
+        return total
 
-    def show_best_video(self) -> str:
-        best_video = max(self.videos, key=lambda video: video.like_count)
-        return best_video.video_url
+    def show_best_video(self):
+        max_like_count = 0
+        url = ""
+        for video in self.video_response['items']:
+            if max_like_count < int(video['statistics']['likeCount']):
+                max_like_count = int(video['statistics']['likeCount'])
+                url = f"https://www.youtu.be/{video['id']}"
+            return url
